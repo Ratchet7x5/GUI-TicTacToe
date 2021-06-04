@@ -5,10 +5,102 @@
  */
 package gui.tictactoe.YT;
 
+import java.sql.*;
+
 /**
+ * SQL Class enables to create tables and insert data into tables
  *
  * @author Rey PC
  */
 public class StorePlayers {
-    
+
+    private final DBManager dbMan;
+    private final Connection conn;
+    private Statement statement;
+
+    public StorePlayers() {
+        dbMan = new DBManager();
+        conn = dbMan.getConnection();
+    }
+
+    public void createTTToeDB() {
+        try {
+            this.statement = conn.createStatement();
+            this.statement.addBatch("CREATE TABLE PLAYERS (PLAYERID INT PRIMARY KEY, NAME VARCHAR(50), MATCHES_PLAYED INT, WINS INT, LOSES INT)");
+            this.statement.executeBatch();
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    //Count how amny players there are and stores the player ID
+    public int countRows() throws SQLException {
+        // select the number of rows in the table
+        ResultSet rs = null;
+        int rowCount = -1;
+        try {
+            this.statement = this.conn.createStatement();
+            rs = this.statement.executeQuery("SELECT COUNT(*) FROM PLAYERS");
+            // get the number of rows from the result set
+            rs.next();
+            rowCount = rs.getInt(1);
+        } finally {
+            rs.close();
+            this.statement.close();
+        }
+        return rowCount;
+    }
+
+    //Create a new Player
+    public void createNewPlayer(GamePlayer gp) {
+        String sql = "INSERT INTO PLAYERS VALUES (?,?,?,?,?)";
+
+        try {
+            //Create a new Player ID
+            int newID = countRows();
+            ++newID;
+
+            int mp = gp.getMatchesPlayed();
+            int wins = gp.getWins();
+            int loses = (gp.getMatchesPlayed() - gp.getWins());
+
+            PreparedStatement s = conn.prepareStatement(sql);
+            s.setInt(1, newID);
+            s.setString(2, gp.getPlayerName());
+            s.setInt(3, mp);
+            s.setInt(4, wins);
+            s.setInt(5, loses);
+            s.executeUpdate();
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+    }
+
+    //Check for exicting player name
+    public void checkExistedName(String name) {
+        try {
+            DatabaseMetaData dbmd = this.conn.getMetaData();
+            String[] types = {"NAME"};
+            statement = this.conn.createStatement();
+            ResultSet rs = dbmd.getTables(null, null, null, types);
+
+            while (rs.next()) {
+                String table_name = rs.getString("NAME");
+                System.out.println(table_name);
+                if (table_name.equalsIgnoreCase(name)) {
+                    statement.executeUpdate("DELETE FROM PLAYERS WHERE " + name);
+                    System.out.println("Player Name " + name + " has been deleted.");
+                    break;
+                }
+            }
+            rs.close();
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    public void closeConnection() {
+        this.dbMan.closeConnections();
+    }
 }

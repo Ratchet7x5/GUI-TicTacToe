@@ -11,16 +11,15 @@ import javax.swing.SwingUtilities;
  *
  * @author Tarun
  */
-public class Game 
-{
-    public static void main(String[] args)
+public class Game {
+
+    
+    public static void main(String[] args) 
     {
-        //run the game thread
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new TicTacToeGUI();
-            }
-        });
+            TicTacToeGUI tg;
+            tg = new TicTacToeGUI();
+            
+            tg.getGame().endGame(); //close SQL
+            tg.getGame().getSp().closeConnection(); //close SQL
     }
 }

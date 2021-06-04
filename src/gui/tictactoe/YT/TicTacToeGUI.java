@@ -40,13 +40,11 @@ public class TicTacToeGUI extends JFrame {
         setLocation(1920/4, 1080/4); //center it on screen
         setLayout(new GridLayout(4,3));
         
-        
+        //setup file
+        initializeMenuBar();
         
         //TODO: ADD SQL OF THE PLAYER NAME?
         game = new TicTacBoard(3,3, pane);
-        
-        
-        
         
         //add 1 empty, then player name j label, then empty
         // EMPT NAME EMPT
@@ -54,7 +52,7 @@ public class TicTacToeGUI extends JFrame {
         // SLOT SLOT SLOT
         // SLOT SLOT SLOT
         JLabel e1 = new JLabel();
-        JLabel e2 = new JLabel("Player: " + game.getPlayerX().getPlayerName() + " (X) Versus Player: " + game.getPlayerO().getPlayerName() + " (O)");
+        JLabel e2 = new JLabel("Player: " + getGame().getPlayerX().getPlayerName() + " (X) Versus Player: " + getGame().getPlayerO().getPlayerName() + " (O)");
         JLabel e3 = new JLabel();
         
         pane.add(e1);
@@ -66,9 +64,6 @@ public class TicTacToeGUI extends JFrame {
         setResizable(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setVisible(true);
-        
-        //setup file
-        initializeMenuBar();
     }
 
     /*
@@ -87,7 +82,7 @@ public class TicTacToeGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //call this func from the gameboard class
-                game.resetBoard(); 
+                getGame().resetBoard(); 
             }
         });
         
@@ -98,7 +93,9 @@ public class TicTacToeGUI extends JFrame {
         quit.addActionListener(new ActionListener() {
 
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e) 
+            {
+                //exit
                 System.exit(0);
             }
         });
@@ -107,5 +104,13 @@ public class TicTacToeGUI extends JFrame {
         menu.add(quit);
         menuBar.add(menu);
         setJMenuBar(menuBar);
+    }
+
+    /**
+     * @return the game
+     */
+    public TicTacBoard getGame() 
+    {
+        return game;
     }
 }

@@ -12,18 +12,17 @@ import javax.swing.JOptionPane;
 
 /**
  * This class is an implemented class
- * 3x3 grid. 2D array this.getBoard(). 
+ * 3x3 grid. 2D array this.getBoard().
  * 
  * THE INHERITED CLASS IS CALLED "TicTacBoard"
  * 
  * TODO: Refactor win function, add a tie prompt as well...
- * prompr user for new game or exit program on tie/win/loss
+ * prompt user for new game or exit program on tie/win/loss
  * @author Tarun
  */
 public class TicTacBoard extends GameBoard 
 {
     //non mentioned attributes...
-    //JButton[][] board
     
     //Attributes
     private Container pane;
@@ -31,6 +30,10 @@ public class TicTacBoard extends GameBoard
     private GamePlayer playerX;
     private GamePlayer playerO;
     private boolean hasWinner;
+    int winnerCalls = 0;
+    
+    //Storage...
+    private StorePlayers sp;
     
     //Constructor
     public TicTacBoard(int r, int c, Container p) 
@@ -38,14 +41,19 @@ public class TicTacBoard extends GameBoard
         super(r, c);
         
         //init human player X
-        playerX = new GamePlayer(JOptionPane.showInputDialog("Player X, What's your name?"), "X");
+        playerX = new GamePlayer(this.getUserName(), "X");
         
         //init human player O
-        playerO = new GamePlayer(JOptionPane.showInputDialog("Player O, What's your name?"), "O");
+        playerO = new GamePlayer(this.getUserName(), "O");
         
+        //new game
         setCurrentPlayer(playerX);
         setPane(p);
         initBoard();
+        
+        //SQL
+        sp = new StorePlayers();
+        sp.createTTToeDB();
     }
 
 
@@ -56,6 +64,7 @@ public class TicTacBoard extends GameBoard
     @Override
     public void initBoard() 
     {
+        winnerCalls = 0;
         for (int i = 0; i < 3; i++) 
         {
             for (int j = 0; j < 3; j++) 
@@ -85,6 +94,7 @@ public class TicTacBoard extends GameBoard
     {
         setCurrentPlayer(getPlayerX());
         hasWinner = false;
+        winnerCalls = 0;
         
         for (int i = 0; i < this.getBoard().length; i++) //replace with board.getsize
         {
@@ -93,6 +103,14 @@ public class TicTacBoard extends GameBoard
                 this.getBoard()[i][j].setText("EMPTY BUTTON");
             }
         }
+        
+        System.out.println("X Matches Played: " + playerX.getMatchesPlayed());        
+        System.out.println("X Matches Win: " + playerX.getWins());
+        System.out.println("X Matches Lost: " + (playerX.getMatchesPlayed()-playerX.getWins()));
+         
+        System.out.println("O Matches Played: " + playerO.getMatchesPlayed());        
+        System.out.println("O Matches Win: " + playerO.getWins());
+        System.out.println("O Matches Lost: " + (playerO.getMatchesPlayed()-playerO.getWins()));
     }
     
     /**
@@ -102,11 +120,23 @@ public class TicTacBoard extends GameBoard
     {
         if (getCurrentPlayer().getPlayerType().equalsIgnoreCase("X"))
         {
-            setCurrentPlayer(getPlayerO());
+            setCurrentPlayer(this.getPlayerO());
         } 
         else 
         {
-            setCurrentPlayer(getPlayerX());
+            setCurrentPlayer(this.getPlayerX());
+        }
+    }
+    
+    private GamePlayer getOtherPlayer(GamePlayer cp) 
+    {
+        if (cp.getPlayerType().equalsIgnoreCase("X"))
+        {
+            return getPlayerO();
+        } 
+        else 
+        {
+            return getPlayerX();
         }
     }
 
@@ -114,64 +144,109 @@ public class TicTacBoard extends GameBoard
     public void checkForWinner() 
     {
         //add a statement if nobody won. 
-        
+        //increment loss on other player
+        winnerCalls++;
         //if else ladder handles X and O win conditions...
-        if (this.getBoard()[0][0].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[1][0].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[2][0].getText().equals(getCurrentPlayer().getPlayerType())) 
+        if (this.getBoard()[0][0].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[1][0].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[2][0].getText().equals(currentPlayer.getPlayerType())) 
         {
-            JOptionPane.showMessageDialog(null, "Player " + getCurrentPlayer() + "has won");
-            this.setHasWinner(true);
-        } 
-        else if (this.getBoard()[0][1].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[1][1].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[2][1].getText().equals(getCurrentPlayer().getPlayerType())) 
-        {
-            JOptionPane.showMessageDialog(null, "Player " + getCurrentPlayer() + " has won");
+            increaseWins(currentPlayer, this.getOtherPlayer(currentPlayer));
+            JOptionPane.showMessageDialog(null, "Player " + currentPlayer.getPlayerName() + " has won");
             setHasWinner(true);
         } 
-        else if (this.getBoard()[0][2].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[1][2].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[2][2].getText().equals(getCurrentPlayer().getPlayerType())) 
+        else if (this.getBoard()[0][1].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[1][1].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[2][1].getText().equals(currentPlayer.getPlayerType())) 
         {
-            JOptionPane.showMessageDialog(null, "Player " + getCurrentPlayer() + " has won");
+            increaseWins(currentPlayer, this.getOtherPlayer(currentPlayer));
+            JOptionPane.showMessageDialog(null, "Player " + currentPlayer.getPlayerName() + " has won");
             setHasWinner(true);
         } 
-        else if (this.getBoard()[0][0].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[1][1].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[2][2].getText().equals(getCurrentPlayer().getPlayerType())) 
+        else if (this.getBoard()[0][2].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[1][2].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[2][2].getText().equals(currentPlayer.getPlayerType())) 
         {
-            JOptionPane.showMessageDialog(null, "Player " + getCurrentPlayer() + " has won");
+            increaseWins(currentPlayer, this.getOtherPlayer(currentPlayer));
+            JOptionPane.showMessageDialog(null, "Player " + currentPlayer.getPlayerName() + " has won");
             setHasWinner(true);
         } 
-        else if (this.getBoard()[0][2].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[1][1].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[2][0].getText().equals(getCurrentPlayer().getPlayerType())) 
+        else if (this.getBoard()[0][0].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[1][1].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[2][2].getText().equals(currentPlayer.getPlayerType())) 
         {
-            JOptionPane.showMessageDialog(null, "Player " + getCurrentPlayer() + " has won");
+            increaseWins(currentPlayer, this.getOtherPlayer(currentPlayer));
+            JOptionPane.showMessageDialog(null, "Player " + currentPlayer.getPlayerName() + " has won");
             setHasWinner(true);
         } 
-        else if (this.getBoard()[0][0].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[0][1].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[0][2].getText().equals(getCurrentPlayer().getPlayerType())) 
+        else if (this.getBoard()[0][2].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[1][1].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[2][0].getText().equals(currentPlayer.getPlayerType())) 
         {
-            JOptionPane.showMessageDialog(null, "Player " + getCurrentPlayer() + " has won");
+            increaseWins(currentPlayer, this.getOtherPlayer(currentPlayer));
+            JOptionPane.showMessageDialog(null, "Player " + currentPlayer.getPlayerName() + " has won");
             setHasWinner(true);
         } 
-        else if (this.getBoard()[1][0].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[1][1].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[1][2].getText().equals(getCurrentPlayer().getPlayerType())) 
+        else if (this.getBoard()[0][0].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[0][1].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[0][2].getText().equals(currentPlayer.getPlayerType())) 
         {
-            JOptionPane.showMessageDialog(null, "Player " + getCurrentPlayer() + " has won");
+            increaseWins(currentPlayer, this.getOtherPlayer(currentPlayer));
+            JOptionPane.showMessageDialog(null, "Player " + currentPlayer.getPlayerName() + " has won");
             setHasWinner(true);
         } 
-        else if (this.getBoard()[2][0].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[2][1].getText().equals(getCurrentPlayer().getPlayerType()) 
-                && this.getBoard()[2][2].getText().equals(getCurrentPlayer().getPlayerType())) 
+        else if (this.getBoard()[1][0].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[1][1].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[1][2].getText().equals(currentPlayer.getPlayerType())) 
         {
-            JOptionPane.showMessageDialog(null, "Player " + getCurrentPlayer() + " has won");
+            increaseWins(currentPlayer, this.getOtherPlayer(currentPlayer));
+            JOptionPane.showMessageDialog(null, "Player " + currentPlayer.getPlayerName() + " has won");
+            setHasWinner(true);
+        } 
+        else if (this.getBoard()[2][0].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[2][1].getText().equals(currentPlayer.getPlayerType()) 
+                && this.getBoard()[2][2].getText().equals(currentPlayer.getPlayerType())) 
+        {
+            increaseWins(currentPlayer, this.getOtherPlayer(currentPlayer));
+            JOptionPane.showMessageDialog(null, "Player " + currentPlayer.getPlayerName() + " has won");
             setHasWinner(true);
         }
+        else if(winnerCalls == 9)
+        {
+            tie();
+            JOptionPane.showMessageDialog(null, "Nobody won...");
+            setHasWinner(false);
+        }
+    }
+    
+    private void increaseWins(GamePlayer winner, GamePlayer loser)
+    {
+        winner.incrementWins();
+        loser.incrementLoss();
+        System.out.println("increaseWins func called.");
+    }
+    
+    private void tie()
+    {
+        this.getPlayerX().incrementLoss();
+        this.getPlayerO().incrementLoss();
+        System.out.println("Tie func called.");
+    }
+    
+    public void endGame()
+    {
+        this.sp.createNewPlayer(playerX);        
+        this.sp.createNewPlayer(playerO);
+    }
+    
+    private String getUserName()
+    {
+        String un = "";
+        while(un.equals(""))
+        {
+            un = JOptionPane.showInputDialog("Player, What's your name?");
+        }
+        return un;
     }
 
     /**
@@ -219,7 +294,8 @@ public class TicTacBoard extends GameBoard
     /**
      * @return the playerX
      */
-    public GamePlayer getPlayerX() {
+    public GamePlayer getPlayerX() 
+    {
         return playerX;
     }
 
@@ -233,14 +309,30 @@ public class TicTacBoard extends GameBoard
     /**
      * @return the playerO
      */
-    public GamePlayer getPlayerO() {
+    public GamePlayer getPlayerO() 
+    {
         return playerO;
     }
 
     /**
      * @param playerO the playerO to set
      */
-    private void setPlayerO(GamePlayer playerO) {
+    private void setPlayerO(GamePlayer playerO) 
+    {
         this.playerO = playerO;
+    }
+
+    /**
+     * @return the sp
+     */
+    public StorePlayers getSp() {
+        return sp;
+    }
+
+    /**
+     * @param sp the sp to set
+     */
+    public void setSp(StorePlayers sp) {
+        this.sp = sp;
     }
 }
