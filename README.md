@@ -29,6 +29,7 @@ This project is a simple GUI-based Tic-Tac-Toe game, built using [insert framewo
     pip install -r requirements.txt
     
   For other languages, list relevant installation steps.
+  
 3. **Run the Application**:
   ```bash
   	python tic_tac_toe.py
