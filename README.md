@@ -1,5 +1,7 @@
 # GUI Tic-Tac-Toe
 
+![gui](https://github.com/user-attachments/assets/62b8518d-d6d3-4a73-a93d-0c47619aa5d0)
+
 ## Overview
 
 This project is a simple GUI-based Tic-Tac-Toe game, built using [insert framework or language, e.g., Python and Tkinter]. The game allows two players to play against each other on a 3x3 grid. The first player to align three of their marks (either "X" or "O") horizontally, vertically, or diagonally wins the game. The project demonstrates my skills in GUI development and basic game logic implementation.
@@ -27,8 +29,6 @@ This project is a simple GUI-based Tic-Tac-Toe game, built using [insert framewo
 2. **Install Dependencies (if any)**:
     ```bash
     pip install -r requirements.txt
-    
-  For other languages, list relevant installation steps.
   
 3. **Run the Application**:
   ```bash
